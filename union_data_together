@@ -1,0 +1,48 @@
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(tidyr)
+#resetting RStudio Environment
+rm(list = ls())
+#set working directory
+setwd('~/Desktop/College/Junior/Spring Semester/DATA-332/inclass')
+
+df_truck_0001 <- read_excel('truck data 0001.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_0369 <- read_excel('truck data 0369.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_1226 <- read_excel('truck data 1226.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_1442 <- read_excel('truck data 1442.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_1478 <- read_excel('truck data 1478.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_1539 <- read_excel('truck data 1539.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_truck_1769 <- read_excel('truck data 1769.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+df_pay <- read_excel('Driver Pay Sheet.xlsx', .name_repair = 'universal')
+
+df <- rbind(df_truck_0001, df_truck_0369, df_truck_1226,
+            df_truck_1442, df_truck_1478, df_truck_1539, df_truck_1769)
+
+df_starting_Pivot <- df %>%
+  group_by(Truck.ID) %>%
+  summarize(count = n())
+
+df <- left_join(df, df_pay, by = c('Truck.ID'))
+
+df_locations <- df %>%
+  group_by(Truck.ID) %>%
+  summarize(num_locations = n())
+
+colnames(df_pay) <- c("Truck.ID", "Labor_per_mile", "First_Name", "Last_Name", "Years_Driving")
+
+df <- df %>%
+  mutate(Miles_Driven = Odometer.Ending - Odometer.Beginning)
+
+df_total_pay <- df %>%
+  group_by(Truck.ID) %>%
+  summarize(total_pay = sum(Miles_Driven * labor_per_mil, na.rm = TRUE))
+
+ggplot(df_total_pay, aes(x = factor(Truck.ID), y = total_pay, fill = factor(Truck.ID))) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Pay Per Truck",
+       x = "Truck ID",
+       y = "Total Pay (USD)") +
+  scale_fill_brewer(palette = "Set3") +  
+  theme_minimal()
