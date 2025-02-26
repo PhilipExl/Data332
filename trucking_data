@@ -1,0 +1,94 @@
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(tidyr)
+#resetting RStudio Environment
+rm(list = ls())
+#set working directory
+setwd('~/Desktop/College/Junior/Spring Semester/DATA-332/inClass')
+
+df_truck <- read_excel('NP_EX_1-2.xlsx', sheet = 2, skip = 3, .name_repair = 'universal')
+
+#selecting columns
+df <- df_truck[, c(4:15)]
+#removing columns
+df = subset(df, select = -c(...10) )
+
+#getting difference in days within a column
+date1 <- min(df$Date) 
+date2 <- max(df$Date)
+
+number_days_on_road <- date2 - date1
+
+days <- difftime(min(df$Date), max(df$Date))
+
+print(number_days_on_road)
+
+#number of hours driving
+num_hrs_driving <- sum(df$Hours)
+print(num_hrs_driving)
+
+#average hours per day
+avg_hrs_day <- mean(df$Hours)
+print(avg_hrs_day)
+
+#total expenses
+total_expenses <- sum(df$Gallons, df$Price.per.Gallon, df$Tolls, df$Misc)
+print(total_expenses)
+
+#total fuel expenses
+total_fuel_expenses <- sum(df$Gallons * df$Price.per.Gallon)
+print(total_fuel_expenses)
+
+#Other Expenses
+other_expenses <- sum(df$Tolls + df$Misc)
+print(other_expenses)
+
+#total gallons consumed
+total_gallons <- sum(df$Gallons)
+print(total_gallons)
+
+#total miles driven
+total_miles <- sum(df$Odometer.Ending - df$Odometer.Beginning)
+print(total_miles)
+
+#miles per gallon
+m_per_gallon <- total_miles / sum(df$Gallons)
+print(m_per_gallon)
+
+#total cost per mile
+tot_cost_p_mile <- total_fuel_expenses / total_miles
+print(tot_cost_p_mile)
+
+#split
+df[c('warehouse', 'starting_city_state')] <-
+  str_split_fixed(df$Starting.Location, ',', 2)
+
+#sting extract
+df$starting_city_state <- gsub(',', "", df$starting_city_state)
+
+# do another string split to show them what the problem is
+df[c('col1', 'col2')] <-
+  str_split_fixed(df$starting_city_state, ' ', 2)
+
+# do this in console nchar(df$city_state)[1]
+df[c('col1', 'col2', 'col3')] <-
+  str_split_fixed(df$col2, ' ', 3)
+
+#drop col1-col3 it is too much - could write a for loop to cleanup
+
+#start by just completing the group_by with count, then add complexity
+#by using na.rm = TRUE you can remove missing values
+df_starting_Pivot <- df %>%
+  group_by(starting_city_state) %>%
+  summarize(count = n(),
+            mean_size_hours = mean(Hours, na.rm = TRUE),
+            sd_hours = sd(Hours, na.rm = TRUE),
+            total_hours = sum(Hours, na.rm = TRUE),
+            total_gallons = sum(Gallons, na.rm = TRUE)
+            )
+#start column by just the column then add complexity
+ggplot(df_starting_Pivot, aes(x = starting_city_state, y = count)) +
+  geom_col() +
+  theme(axis.text = element_text(angle = 45, vjust = .5, hjust = 1))
