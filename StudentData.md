@@ -78,6 +78,10 @@ ggplot(df_cost, aes(x = Title, y = Total_Cost, fill = Payment.Plan)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_brewer(palette = "Dark2")
 
+<p> This chart shows the number of students by birthyear</p>
+
+<img src="chapter_2/costPerMajor.png" height = 250 width = 400>
+
 # Summarize total balance due by major and payment plan
 df_balance <- df_merged %>%
   group_by(Title, Payment.Plan) %>%
