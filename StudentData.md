@@ -103,3 +103,8 @@ print(highest_cost)
 # Major with the highest balance due
 highest_balance <- df_balance %>% arrange(desc(Total_Balance_Due)) %>% head(1)
 print(highest_balance)
+
+# Image display:
+<p> This chart shows four grouped bar charts of student enrollment, costs and payments</p>
+
+<img src="~/Desktop/College/Junior/Spring Semester/DATA-332/inclass/student_data/studentData.png" height = 250 width = 400>
