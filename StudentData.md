@@ -107,4 +107,4 @@ print(highest_balance)
 # Image display:
 <p> This chart shows four grouped bar charts of student enrollment, costs and payments</p>
 
-<img src="~/Desktop/College/Junior/Spring Semester/DATA-332/inclass/student_data/studentData.png" height = 250 width = 400>
+<img src="chapter_2/studentData.png" height = 250 width = 400>
