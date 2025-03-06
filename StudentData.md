@@ -41,7 +41,7 @@ ggplot(df_major_count, aes(x = reorder(Title, -Num_Students), y = Num_Students, 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_fill_brewer(palette = "Set2")
 
-<p> This chart shows four grouped bar charts of student enrollment, costs and payments</p>
+<p> This chart shows the number of students per major</p>
 
 <img src="chapter_2/groupedBarMajor.png" height = 250 width = 400>
 
