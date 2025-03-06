@@ -59,6 +59,9 @@ ggplot(df_birth_year, aes(x = as.factor(Birth_Year), y = Num_Students, fill = as
   theme_minimal() +
   scale_fill_brewer(palette = "Paired")
 
+<p> This chart shows the number of students by birthyear</p>
+
+<img src="chapter_2/birthYear.png" height = 250 width = 400>
 # Summarize total cost by major and payment plan
 df_cost <- df_merged %>%
   group_by(Title, Payment.Plan) %>%
