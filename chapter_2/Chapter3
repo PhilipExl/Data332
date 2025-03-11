@@ -1,0 +1,27 @@
+# Exercise 1:
+# 1 = int, '1' = str, 'one' = str
+
+#Exercise 2:
+royal_flush_faces <- c("ace", "king", "queen", "jack", "ten")
+print("royal_flush_faces")
+
+#Exercise 3:
+faces <- c("ace", "king", "queen", "jack", "ten")
+suits <- rep("spades", 5)
+
+royal_flush_matrix <- matrix(c(faces, suits), nrow = 5, ncol = 2)
+
+colnames(royal_flush_matrix) <- c("Face", "Suit")
+
+print(royal_flush_matrix)
+
+#Exercise 4:
+playing_card <- c("ace", "heart", 1)
+
+print(playing_card)
+
+typeof(playing_card)
+
+#Exercise 5:
+card <- list('ace', 'hearts', 1)
+card
