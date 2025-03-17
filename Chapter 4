@@ -1,0 +1,12 @@
+#Chapter 4 
+
+#Exercise 1:
+deal <- function(cards) {
+  cards[1, ]
+}
+
+#Exercise 2:
+shuffle <- function(cards) {
+  random <- sample(1:52, size = 52)
+  cards[random, ]
+}
