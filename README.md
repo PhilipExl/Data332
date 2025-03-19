@@ -1,4 +1,4 @@
-#**Consumer Complaints**
+# **Consumer Complaints**
 
 library(ggplot2)
 library(dplyr)
@@ -38,6 +38,9 @@ bing_sentiment %>%
        x = "Sentiment",
        y = "Frequency") +
   theme_minimal()
+<p> This bing sentiment clearly shows negative and positive sentiment frequencies</p>
+
+<img src="chapter_2/bingSentiment.png" height = 250 width = 400>
 
 nrc_sentiment <- consumer_tokens_clean %>%
   inner_join(get_sentiments("nrc")) %>%
@@ -52,9 +55,17 @@ nrc_sentiment %>%
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+<p> This nrc sentiment shows more nuanced sentiments</p>
+
+<img src="chapter_2/nrcSentiment.png" height = 250 width = 400>
+
 consumer_tokens_clean <- consumer_tokens_clean %>%
   filter(!str_detect(word, "(?i)X{2,}"))
 
 consumer_tokens_clean %>%
   count(word, sort = TRUE) %>%
   with(wordcloud(word, n, max.words = 100, colors = brewer.pal(8, "Dark2")))
+
+<p> Wordcloud visually represents frequency and importance of complaint words</p>
+
+<img src="chapter_2/wordcloud.png" height = 250 width = 400>
