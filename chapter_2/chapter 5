@@ -1,0 +1,28 @@
+#Exercise 1:
+deck2 <- data.frame(face = c("ace", "2", "3", "ace", "king", "ace", "queen"))
+
+deck2$face
+deck2$face == "ace"
+sum(deck2$face == "ace")
+
+#Exercise 2:
+deck4$suit == "hearts"
+deck4$value[deck4$suit == "hearts"] <- 1
+
+#Exercise 3:
+w <- c(-1, 0, 1)
+x <- c(5, 15)
+y <- "February"
+z <- c("Monday", "Tuesday", "Friday")
+
+test_w_positive <- all(w > 0)
+print(test_w_positive)
+
+test_x_range <- all(x > 10 & x < 20)
+print(test_x_range)
+
+test_y_february <- y == "February"
+print(test_y_february)
+
+test_z_days_of_week <- all(z %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))
+print(test_z_days_of_week)
