@@ -1,0 +1,152 @@
+#CHAPTER 6
+#Exercise 1:
+#Yes, it will run deal in a runtime environment, which is a child of the global environment
+
+#Exercise 2:
+suits <- c("Hearts", "Diamonds", "Clubs", "Spades")
+values <- c("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King")
+
+deck <- expand.grid(Value = values, Suit = suits)
+deck <- deck[sample(nrow(deck)), ] 
+
+
+deal <- function() {
+  card <- deck[1, ]
+  assign("deck", deck[-1, ], envir = globalenv())
+  card
+}
+
+deal()
+
+shuffle <- function(){
+ random <- sample(1:52, size = 52)
+ assign("deck", DECK[random, ], envir = globalenv())
+}
+
+head(deck, 3)
+
+a <- shuffle(deck)
+head(deck, 3)
+
+head(a, 3)
+
+#Exercise 3:
+deal <- function() {
+  card <- deck[1, ]
+  assign("deck", deck[-1, ], envir = globalenv())
+  card
+}
+
+#Exercise 4:
+suits <- c("Hearts", "Diamonds", "Clubs", "Spades")
+values <- c("Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King")
+
+deck <- expand.grid(Value = values, Suit = suits)
+deck <- deck[sample(nrow(deck)), ] 
+
+
+deal <- function() {
+  card <- deck[1, ]
+  assign("deck", deck[-1, ], envir = globalenv())
+  card
+}
+
+deal()
+
+shuffle <- function(){
+  random <- sample(1:52, size = 52)
+  assign("deck", DECK[random, ], envir = globalenv())
+}
+
+head(deck, 3)
+
+a <- shuffle(deck)
+head(deck, 3)
+
+head(a, 3)
+
+#CHAPTER 7
+#Exercise 1:
+symbols <- c("7", "7", "7") 
+
+# Case 1: All 3 symbols are the same
+if (all(symbols == symbols[1])) {
+  prize <- "Jackpot! All symbols match!"
+  
+} else if (all(symbols %in% c("B", "BB", "BBB"))) {
+  # Case 2: All symbols are types of bars
+  prize <- "$5 for all bars"
+  
+} else {
+  # Case 3: Count cherries
+  cherries <- sum(symbols == "C")
+  
+  if (cherries == 2) {
+    prize <- "$5 for 2 cherries"
+  } else if (cherries == 1) {
+    prize <- "$2 for 1 cherry"
+  } else {
+    prize <- "No prize"
+  }
+}
+
+print(prize)
+
+symbols <- c("C", "C", "7")  
+symbols <- c("B", "BB", "BBB")
+symbols <- c("7", "7", "7") 
+symbols <- c("7", "C", "B") 
+
+all(symbols == symbols[1])
+
+#Exercise 2:
+symbols <- c("DD", "7", "BBB", "BB", "B", "C", "0")
+
+prob <- c(0.03, 0.03, 0.06, 0.1, 0.25, 0.25, 0.28)
+
+play <- function() {
+  spin <- sample(symbols, size = 3, replace = TRUE, prob = prob)
+  print(spin) 
+
+  num_cherries <- sum(spin == "C")
+  num_diamonds <- sum(spin == "DD")
+ 
+  no_diamonds <- spin[spin != "DD"]
+ 
+  if (all(spin == spin[1])) {
+    prize <- 100  
+  } else if (all(no_diamonds %in% c("B", "BB", "BBB")) && length(no_diamonds) == 3) {
+    prize <- 5    
+  } else if (num_cherries == 2) {
+    prize <- 5
+  } else if (num_cherries == 1) {
+    prize <- 2
+  } else {
+    prize <- 0
+  }
+  
+  prize <- prize * 2^num_diamonds
+  
+  cat("You won $", prize, "!\n")
+}
+
+play()
+
+#Exercise 3:
+symbols <- c("C", "B", "C")
+symbols == "C"
+
+#Exercise 4:
+# I have to first calculate the base price from matching symbols, then count
+# how many diamonds are in the spin and then double the price for each diamond
+# else the price stays the same.
+
+symbols <- c("C", "DD", "DD")
+
+prize <- 5
+
+num_diamonds <- sum(symbols == "DD")
+
+prize <- prize * (2 ^ num_diamonds)
+
+cat("Adjusted prize is: $", prize, "\n")
