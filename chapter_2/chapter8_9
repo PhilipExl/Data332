@@ -1,0 +1,90 @@
+#CHAPTER 8
+
+#Exercise 1:
+cplay <- function() {
+  symbols <- get_symbols() 
+  prize <- score(symbols)
+  attr(prize, "symbols") <- symbols
+  return(prize)
+}
+
+#Exercise 2:
+print.slots <- function(x, ...) {
+  slot_display(x)
+}
+one_play
+
+#Exercise 3:
+play <- function() {
+  symbols <- get_symbols()
+  structure(score(symbols),
+            symbols = symbols,
+            class = "slots")
+}
+
+#CHAPTER 9
+
+#Exercise 1:
+wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
+
+combinations <- expand.grid(wheel, wheel, wheel, stringsAsFactors = FALSE)
+
+#Exercise 2:
+wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
+probs <- c(0.03, 0.03, 0.06, 0.10, 0.25, 0.01, 0.52)
+
+prob_table <- setNames(probs, wheel)
+
+combos <- expand.grid(wheel, wheel, wheel, stringsAsFactors = FALSE)
+colnames(combos) <- c("slot1", "slot2", "slot3")
+
+combo_probs <- prob_table[combos$slot1] * prob_table[combos$slot2] * prob_table[combos$slot3]
+
+combos$probability <- combo_probs
+
+head(combos, 10)
+
+#Exercise 3:
+combos$prob1 <- prob[combos$Var1]
+combos$prob2 <- prob[combos$Var2]
+combos$prob3 <- prob[combos$Var3]
+
+head(combos, 3)
+
+#Exercise 4:
+wheel <- c("DD", "7", "BBB", "BB", "B", "C", "0")
+probs <- c(0.03, 0.03, 0.06, 0.10, 0.25, 0.01, 0.52)
+
+prob_table <- setNames(probs, wheel)
+
+combos <- expand.grid(wheel, wheel, wheel, stringsAsFactors = FALSE)
+colnames(combos) <- c("slot1", "slot2", "slot3")
+
+combos$prob <- prob_table[combos$slot1] * 
+  prob_table[combos$slot2] * 
+  prob_table[combos$slot3]
+
+total_prob <- sum(combos$prob)
+cat("Total probability:", total_prob, "\n")
+
+#Exercise 5:
+combos$prize <- NA
+
+for (i in 1:nrow(combos)) {
+  symbols <- c(combos$slot1[i], combos$slot2[i], combos$slot3[i])
+
+  combos$prize[i] <- score(symbols)
+}
+
+#Exercise 6:
+combos$prize <- NA
+for (i in 1:nrow(combos)) {
+  symbols <- c(combos$slot1[i], combos$slot2[i], combos$slot3[i])
+  combos$prize[i] <- score(symbols)
+}
+
+combos$expected_value <- combos$prize * combos$prob
+
+total_ev <- sum(combos$expected_value)
+
+cat("The expected value of one play on this slot machine is $", round(total_ev, 2), "\n")
