@@ -40,3 +40,11 @@ This project loads radar speed tracking datasets from seven different GitHub rep
 - Analyze speeding patterns throughout the day.
 - Compare speeds across student collectors.
 - Identify which vehicle types tend to drive faster.
+
+## This bar chart shows Speed vs type_of_car split by color
+
+
+
+## Shiny App
+
+https://philipexldataclass.shinyapps.io/countCars/
