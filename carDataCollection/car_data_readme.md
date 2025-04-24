@@ -45,7 +45,7 @@ This project loads radar speed tracking datasets from seven different GitHub rep
 
 You can tell that black coupes are the fastest cars, whereas grey minivans are the slowest.
 
-<img src="[carDataCollection/TypeByColor.png](https://github.com/PhilipExl/Data332/blob/main/carDataCollection/TypeByColor.png)" height = 250 width = 400>
+<img src="Data332/carDataCollection/TypeByColor.png" height = 250 width = 400>
 
 ## Shiny App
 
