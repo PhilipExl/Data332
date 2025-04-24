@@ -2,98 +2,175 @@ library(shiny)
 library(ggplot2)
 library(dplyr)
 library(DT)
-library(rsconnect)
 library(readxl)
-library(RCurl)
+library(readr)
+library(httr)
 library(lubridate)
+library(janitor)
 
+options(readr.show_col_types = FALSE)
 rm(list = ls())
 
-# Load and clean data
-data_url <- getURL("https://raw.githubusercontent.com/TommyAnderson/Car-Data-Analysis/refs/heads/main/Car%20Data%20Collection.csv")
-dataset <- read.csv(text = data_url, stringsAsFactors = FALSE)
+# Convert GitHub Blob to Raw URL
+blob_to_raw <- function(url) {
+  url <- gsub("github.com", "raw.githubusercontent.com", url)
+  url <- gsub("/blob/", "/", url)
+  return(url)
+}
 
+# Dataset URLs
+urls <- c(
+  "https://github.com/TommyAnderson/Car-Data-Analysis/blob/main/Car%20Data%20Collection.csv",
+  "https://github.com/rohaanfarrukh/data332_counting_cars/blob/main/counting_cars_project/rscript/speed_counting_cars.xlsx",
+  "https://github.com/nickhc41703/Data_332_assignments/blob/main/Homework/counting_cars/counting_cars_final.csv",
+  "https://github.com/kritansth/data332/blob/main/counting_cars/cars_count.xlsx",
+  "https://github.com/retflipper/DATA332_CountingCars/blob/main/data/Counting_Cars.csv",
+  "https://github.com/nissou62/The-very-basics-of-R/blob/main/shinymtcar_project/Data_Counting_Cars.csv",
+  "https://github.com/1R0NCL4D-B4ST10N/DATA332/blob/361329a6e87b930e66e87f20f2d137f2f0810a46/carTracker/carTracker.xlsx"
+)
 
-# Standardize color labels
-dataset$Color <- trimws(tolower(dataset$Color))
-dataset$Color[dataset$Color %in% c("light grey", "dark grey", "grey")] <- "grey"
-dataset$Color[dataset$Color %in% c("red", "maroon", "dark red")] <- "red"
+# Read & Clean Each Dataset
+read_and_clean <- function(url) {
+  raw_url <- blob_to_raw(url)
+  ext <- tools::file_ext(raw_url)
+  
+  if (ext == "csv") {
+    df <- tryCatch(read_csv(raw_url), error = function(e) NULL)
+  } else if (ext == "xlsx") {
+    tmp <- tempfile(fileext = ".xlsx")
+    GET(raw_url, write_disk(tmp, overwrite = TRUE))
+    df <- tryCatch(read_excel(tmp), error = function(e) NULL)
+  } else return(NULL)
+  
+  if (is.null(df)) return(NULL)
+  
+  df <- clean_names(df)
+  df$source <- basename(raw_url)
+  
+  # Remove unwanted columns
+  cols_to_remove <- c(
+    "if_they_slow_down_yes_no", "initial_speed", "difference", 
+    "initial_read", "difference_in_readings", "commercial_yes_no", 
+    "slow", "speed_limit", "number", "init_speed", 
+    "speed_change", "location", "primary_key", "brand",
+    "date", "date_recorded", "flashing", "x13", "x14", 
+    "plate_state", "state_registered", "car_number", "final_read"
+  )
+  df <- df %>% select(-any_of(cols_to_remove))
+  
+  # Standardize speed
+  speed_cols <- names(df)[grepl("^speed$|final_speed|mph", names(df), ignore.case = TRUE)]
+  if (!"speed" %in% names(df) && length(speed_cols) > 0) {
+    df$speed <- suppressWarnings(as.numeric(apply(df[, speed_cols, drop = FALSE], 1, function(row) {
+      val <- suppressWarnings(as.numeric(na.omit(row)))
+      if (length(val) > 0) return(val[1]) else return(NA)
+    })))
+    df <- df %>% select(-any_of(speed_cols))
+  }
+  
+  # Standardize name
+  name_variants <- c("recorder", "collector_name", "student", "observer", "name")
+  existing_name <- name_variants[name_variants %in% names(df)]
+  if (length(existing_name) > 0) {
+    df <- df %>% rename(name = !!sym(existing_name[1]))
+  }
+  
+  # Standardize type_of_car
+  type_variants <- c("type_of_car", "vehicle_style", "body_style", "vehicle_type")
+  existing_type <- type_variants[type_variants %in% names(df)]
+  if (length(existing_type) > 0) {
+    df <- df %>% rename(type_of_car = !!sym(existing_type[1]))
+    df$type_of_car <- trimws(tolower(df$type_of_car))
+    df$type_of_car[df$type_of_car %in% c("1", "6", "5", "van")] <- "minivan"
+    df$type_of_car[df$type_of_car %in% c("crossover", "suv", "4")] <- "suv"
+    df$type_of_car[df$type_of_car %in% c("sedan", "sevan", "hatchback", "bug", "3", "2")] <- "sedan"
+    df$type_of_car[df$type_of_car %in% c("pickup_truck", "truck", "9", "10")] <- "truck"
+    df$type_of_car[df$type_of_car %in% c("muscle_car", "8")] <- "coupe"
+    df$type_of_car[df$type_of_car %in% c("7")] <- "motorcycle"
+  }
+  
+  # Standardize time
+  time_variants <- c("time", "hour", "hr_min", "time_recorded", "time_tracked", "time_of_the_day", "Hour")
+  existing_time <- time_variants[time_variants %in% names(df)]
+  if (length(existing_time) > 0) {
+    df <- df %>% rename(time = !!sym(existing_time[1]))
+  }
+  
+  if ("time" %in% names(df)) {
+    df$time_parsed <- parse_date_time(df$time, 
+                                      orders = c("I:M p", "H:M", "HM", "IMp", "HMp", "HMS", "H:M p"), 
+                                      quiet = TRUE
+    )
+    
+    df <- df %>% filter(!is.na(time_parsed))
+    df$time <- format(df$time_parsed, "%H:%M")
+    df$hour <- hour(df$time_parsed)
+    df <- df %>% select(-time_parsed)
+  }
+  
+  # Standardize color
+  if ("color" %in% names(df)) {
+    df$color <- trimws(tolower(df$color))
+    df$color[df$color %in% c("light grey", "dark grey", "gray", "silver")] <- "grey"
+    df$color[df$color %in% c("red", "maroon", "dark red")] <- "red"
+    df$color[df$color %in% c("tan", "yellow")] <- "yellow"
+  }
+  
+  df <- df %>% mutate(across(where(is.character), tolower))
+  
+  safe_cols <- c("type_of_car", "color", "name", "weather")
+  for (col in safe_cols) {
+    if (col %in% names(df)) {
+      df[[col]] <- as.character(df[[col]])
+    }
+  }
+  
+  return(df)
+}
 
-# Standardize all text to lowercase
-dataset <- dataset %>%
-  mutate(across(where(is.character), tolower))
-
-#convert to military time
-dataset$Time <- parse_date_time(dataset$Time, orders = "I:M p")
-dataset$TimeFormatted <- format(dataset$Time, "%H:%M")
-dataset$Hour <- hour(dataset$Time)
-
-# UI
+# Load and Combine Datasets
+datasets <- lapply(urls, read_and_clean)
+dataset <- bind_rows(datasets) %>% filter(!is.na(speed))
 column_names <- colnames(dataset)
 
+# UI
 ui <- fluidPage(
-  titlePanel("Car Data For Rock Island"),
-  h4("For Rock Island, IL"),
-  tags$p(tags$b("Note:"), "Y-axis is always Speed"),
-  
+  titlePanel("Radar Speed Analysis"),
+  tags$p("Merged student-collected speed data from radar tracking"),
   fluidRow(
-    column(2,
-           selectInput('X', 'Choose X', column_names, selected = column_names[1]),
-           selectInput('Splitby', 'Split By', column_names, selected = column_names[3])
+    column(3,
+           selectInput("X", "Choose X-axis", choices = column_names, selected = "time"),
+           selectInput("Splitby", "Split By (Group Color)", choices = column_names, selected = "source")
     ),
-    column(4,
-           plotOutput('plot_01'),
+    column(6,
+           plotOutput("plot_01"),
            br(),
            textOutput("plot_description")
     ),
-    column(6,
-           DT::dataTableOutput("table_01", width = "100%")
+    column(3,
+           DTOutput("table_01")
     )
   )
 )
 
 # Server
 server <- function(input, output) {
-  
   output$plot_01 <- renderPlot({
-    x_data <- dataset[[input$X]]
-    y_data <- dataset[["Speed"]]  # Fixed Y
-    
-    is_x_cat <- is.character(x_data) || is.factor(x_data) ||input$X == 'Hour'
-    
-    # Build appropriate plot
-    if (is_x_cat) {
-      ggplot(dataset, aes_string(x = input$X, y = "Speed", fill = input$Splitby)) +
-        stat_summary(fun = mean, geom = "bar", position = "dodge") +
-        ylab("Mean Speed")
-    } else {
-      ggplot(dataset, aes_string(x = input$X, y = "Speed", colour = input$Splitby)) +
-        geom_point() +
-        ylab("Speed")
-    }
+    filtered_data <- dataset %>% filter(!is.na(.data[[input$X]]) & !is.na(speed))
+    ggplot(filtered_data, aes_string(x = input$X, y = "speed", fill = input$Splitby)) +
+      stat_summary(fun = mean, geom = "bar", position = "dodge") +
+      ylab("Mean Speed") +
+      theme_minimal()
   })
   
-
   output$plot_description <- renderText({
-    if (input$X == "Hour") {
-      "Average speed by hour of day. If enough data is collected should help see rush hour traffic"
-    } else if (input$X == "Color") {
-      "Comparing seed by car color, should show if car color has any type of correlation with speed"
-    } else if (input$X == "Type.Of.Car") {
-      "This bar chart shows average speed for different car types. It can suggest whether certain vehicle categories tend to drive faster."
-    } else if (is.numeric(dataset[[input$X]])) {
-      paste("This scatter plot shows how Speed changes in relation to", input$X, ", colored by", input$Splitby, ".")
-    } else {
-      paste("This bar chart displays average Speed by", input$X, ", grouped by", input$Splitby, ".")
-    }
+    paste("This bar chart shows Speed vs", input$X, "split by", input$Splitby)
   })
   
-  
-  output$table_01 <- DT::renderDataTable({
-    DT::datatable(dataset[, c(input$X, "Speed", input$Splitby)],
-                  options = list(pageLength = 4))
+  output$table_01 <- renderDT({
+    DT::datatable(dataset[, c(input$X, "speed", input$Splitby)], options = list(pageLength = 5))
   })
 }
 
-# Launch app
+# Run the App
 shinyApp(ui = ui, server = server)
