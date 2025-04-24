@@ -57,7 +57,7 @@ Here you can see that cars drove the fastest when it was cloudy and the fastest 
 
 <img src="weather.png" height = 250 width = 450>
 
-## Questions answered#
+## Questions answered
 
 To make my Shiny App functional I had to make several adjustments. First, I standardized inconsistent column names across datasets. For example, speed, final_speed, mph all became speed, similarly, recorder, student, and observer became name. This ensured a unified structure when merging datasets. I also removed redundant or columns that only few groups had to streamline the visualization process and avoid plotting misleading or empty values. A key update was changing the charting to bar charts only, using stat_summary() to plot average speeds by category. Additionally, I called all the data from my personal GitHub repository using the blob_to_raw() function, allowing me to pull raw CSV and Excel files directly into the app—saving both space and time in file management.
 
