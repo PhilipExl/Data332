@@ -57,6 +57,12 @@ Here you can see that cars drove the fastest when it was cloudy and the fastest 
 
 <img src="weather.png" height = 250 width = 450>
 
+## Questions answered#
+
+To make my Shiny App functional I had to make several adjustments. First, I standardized inconsistent column names across datasets. For example, speed, final_speed, mph all became speed, similarly, recorder, student, and observer became name. This ensured a unified structure when merging datasets. I also removed redundant or columns that only few groups had to streamline the visualization process and avoid plotting misleading or empty values. A key update was changing the charting to bar charts only, using stat_summary() to plot average speeds by category. Additionally, I called all the data from my personal GitHub repository using the blob_to_raw() function, allowing me to pull raw CSV and Excel files directly into the app—saving both space and time in file management.
+
+Wrangling the data posed several challenges. Many datasets had inconsistent formatting, with time recorded in various ways (12:30 PM, 14:00, 1330, etc.), which I resolved using lubridate::parse_date_time() and reformatting them to HH:MM. Some datasets were missing key fields, while others had extra columns with unclear or nonstandard names. Cleaning these inconsistencies and extracting only the useful information taught me the importance of clean and consistent data collection practices. This assignment gave me a practical understanding of how messy real-world data can be and emphasized the need for rigorous preprocessing before any meaningful analysis or visualization. I also learned how to automate cleaning steps using dplyr and janitor, making the pipeline scalable for future projects.
+
 ## Shiny App
 
 https://philipexldataclass.shinyapps.io/countCars/
