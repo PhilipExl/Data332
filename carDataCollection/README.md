@@ -47,6 +47,11 @@ You can tell that black coupes are the fastest cars, whereas grey minivans are t
 
 <img src="TypeByColor.png" height = 250 width = 450>
 
+## This bar chart shows Speed vs name split by speed
+Here you can see that Tommy had the highest mean speed of all the people recording and minh had the lowest
+
+<img src="namespeed.png" height = 250 width = 450>
+
 ## Shiny App
 
 https://philipexldataclass.shinyapps.io/countCars/
