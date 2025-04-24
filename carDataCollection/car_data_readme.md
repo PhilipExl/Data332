@@ -43,7 +43,7 @@ This project loads radar speed tracking datasets from seven different GitHub rep
 
 ## This bar chart shows Speed vs type_of_car split by color
 
-<img src="carDataCollection/TypeByColor" height = 250 width = 400>
+<img src="carDataCollection/TypeByColor.png" height = 250 width = 400>
 
 ## Shiny App
 
