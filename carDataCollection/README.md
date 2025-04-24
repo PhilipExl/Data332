@@ -52,6 +52,11 @@ Here you can see that Tommy had the highest mean speed of all the people recordi
 
 <img src="namespeed.png" height = 250 width = 450>
 
+## This bar chart shows the mean speed by weather
+Here you can see that cars drove the fastest when it was cloudy and the fastest when it was sunny.
+
+<img src="weather.png" height = 250 width = 450>
+
 ## Shiny App
 
 https://philipexldataclass.shinyapps.io/countCars/
