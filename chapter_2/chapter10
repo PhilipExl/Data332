@@ -1,0 +1,61 @@
+#CHAPTER 10
+
+#Exercise 1:
+abs_loop <- function(x) {
+  result <- numeric(length(x))
+  for (i in seq_along(x)) {
+    if (x[i] < 0) {
+      result[i] <- -x[i]
+    } else {
+      result[i] <- x[i]
+    }
+  }
+  return(result)
+}
+
+abs_set <- function(x) {
+  negs <- x < 0
+  x[negs] <- -x[negs]
+  return(x)
+}
+set.seed(42)
+long <- rnorm(1e6)
+system.time(abs(long))
+system.time(abs_loop(long))
+system.time(abs_set(long))
+
+#Exercise 2:
+library(dplyr)
+
+#Vectorized Function
+change_symbols_vec <- function(vec) {
+  recode(vec,
+         "DD" = "joker",
+         "C" = "ace",
+         "7" = "king",
+         "B" = "queen",
+         "BB" = "jack",
+         "BBB" = "ten",
+         .default = "nine")
+}
+
+vec <- c("DD", "C", "7", "B", "BB", "BBB", "0")
+
+# Apply function
+change_symbols_vec(vec)
+
+# Speed Test
+many <- rep(vec, 1000000)
+system.time(change_symbols_vec(many))
+
+#Exercise 3:
+score_many <- function(symbols_matrix) {
+  rows <- nrow(symbols_matrix)
+  scores <- numeric(rows)
+  
+  for (i in 1:rows) {
+    scores[i] <- score(symbols_matrix[i, ])
+  }
+  
+  scores
+}
