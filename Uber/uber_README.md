@@ -10,37 +10,37 @@ The first step of my data analysis is to clean the data and prepare it according
 
 First I had to make pivot tables out of the data and used the function group_by
 
-<img src="Uber/screenshot_89.png" height = 250 width = 400>
+<img src="screenshot_89.png" height = 250 width = 400>
 
 ## Chart showing Trips every day
 
 Analysis: Trips tend to increase toward the end of the month, peaking multiple times and on the 30th.
 
-<img src="Uber/tripsEveryDay.png" height = 250 width = 400>
+<img src="tripsEveryDay.png" height = 250 width = 400>
 
 ## Chart showing Trips by Day and Month
 
 Analysis: High activity seen throughout September, especially around the 13th.
 
-<img src="Uber/tripsDayMonth.png" height = 250 width = 400>
+<img src="tripsDayMonth.png" height = 250 width = 400>
 
 ## Chart showing Heat Map by Month and Day
 
 Analysis: September has many busy days, particularly 5th–7th and 18th–28th.
 
-<img src="Uber/heatMonthDay.png" height = 250 width = 400>
+<img src="heatMonthDay.png" height = 250 width = 400>
 
 ## Geospital Map
 
 Analysis: Pickup locations plotted from a subset of Uber rides. The more central the more rides.
 
-<img src="Uber/GeoMap.png" height = 250 width = 400>
+<img src="GeoMap.png" height = 250 width = 400>
 
 ## Prediciton Model
 
 This section builds a simple linear model to predict total trips based on hour and month.
 
-<img src="Uber/predict.png" height = 250 width = 400>
+<img src="predict.png" height = 250 width = 400>
 
 ## Shiny App
 https://philipexldataclass.shinyapps.io/Uber/
