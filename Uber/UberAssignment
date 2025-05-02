@@ -1,0 +1,94 @@
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(DT)
+library(leaflet)
+
+rm(list = ls())
+
+# Read and Combine All Uber CSV Files in the Working Directory
+files <- list.files(pattern = "uber-raw-data-.*\\.csv$")
+
+months <- bind_rows(lapply(files, function(file) {
+  df <- read_csv(file, show_col_types = FALSE)
+  df <- janitor::clean_names(df)
+  
+  # Identify and rename datetime column
+  dt_col <- names(df)[grepl("date[/_\\.]?time|timestamp", names(df))]
+  if (length(dt_col) == 1) {
+    names(df)[names(df) == dt_col] <- "date_time"
+  } else {
+    stop(paste("Couldn't find a valid datetime column in", file))
+  }
+  
+  return(df)
+}))
+
+# Convert to POSIXct Format Safely
+months$date_time <- parse_date_time(months$date_time, orders = c("mdy HMS", "mdY HMS"))
+
+# Create Derived Columns
+months <- months %>%
+  mutate(hour = hour(date_time),
+         day = day(date_time),
+         month = month(date_time, label = TRUE),
+         weekday = wday(date_time, label = TRUE))
+
+# Trips by Hour
+trips_hour <- months %>%
+  count(hour) %>%
+  rename(trips = n)
+write_csv(trips_hour, "trips_by_hour.csv")
+
+# Trips by Hour and Month
+trips_hour_month <- months %>%
+  count(hour, month) %>%
+  rename(total_trips = n)
+write_csv(trips_hour_month, "trips_by_hour_month.csv")
+
+# Trips by Day
+trips_day <- months %>%
+  count(day) %>%
+  rename(trips = n)
+write_csv(trips_day, "trips_by_day.csv")
+
+# Trips by Day and Month
+trips_day_month <- months %>%
+  count(day, month) %>%
+  rename(total_trips = n)
+write_csv(trips_day_month, "trips_by_day_month.csv")
+
+# Trips by Base and Month
+trips_base_month <- months %>%
+  count(base, month) %>%
+  rename(total_trips = n)
+write_csv(trips_base_month, "trips_by_base_month.csv")
+
+# Heatmap: Trips by Hour and Day
+heat_hour_day <- months %>%
+  count(date = as.Date(date_time), hour) %>%
+  rename(trips = n)
+write_csv(heat_hour_day, "heatmap_hour_day.csv")
+
+# Heatmap: Trips by Month and Day
+heat_month_day <- months %>%
+  count(day = as.Date(date_time)) %>%
+  mutate(month = month(day), day_of_month = day(day))
+write_csv(heat_month_day, "heatmap_month_day.csv")
+
+# Heatmap: Trips by Month and Week
+heat_week <- months %>%
+  mutate(week = format(date_time, "%Y-%U")) %>%
+  count(week) %>%
+  mutate(year = substr(week, 1, 4), week_number = substr(week, 6, 7))
+write_csv(heat_week, "heatmap_month_week.csv")
+
+# Heatmap: Trips by Base and Weekday
+base_weekday <- months %>%
+  count(base, weekday) %>%
+  rename(trips = n)
+write_csv(base_weekday, "heatmap_base_weekday.csv")
+
+# Sample Geospatial Map Data (First 100 Rows)
+geo_sample <- months[1:100, ]
+write_csv(geo_sample, "geo_sample.csv")
