@@ -4,7 +4,7 @@
 
 The first step of my data analysis is to clean the data and prepare it accordingly. The process was fairly simple since the data was already well oganized. I only had to bind the data together into one main dataset and format the Date Time column. Here is what the R code would look like:
 
-<img src="Uber/cody.png" height = 250 width = 400>
+<img src="Data332/Uber/cody.png" height = 250 width = 400>
 
 ## Pivot tables
 
