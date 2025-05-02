@@ -1,0 +1,180 @@
+library(tidytext)
+library(tidyr)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(stringr)
+library(lubridate)
+library(shiny)
+library(leaflet)
+library(viridis)
+library(janitor)
+library(caret)
+
+# Load CSV Data
+trips.hour.month <- read_csv("trips_by_hour_month.csv") %>% clean_names()
+trips.day <- read_csv("trips_by_day.csv") %>% clean_names()
+trips.month.day <- read_csv("trips_by_day_month.csv") %>% clean_names()
+month.base <- read_csv("trips_by_base_month.csv") %>% clean_names()
+
+heatmap1 <- read_csv("heatmap_hour_day.csv") %>% clean_names()
+heatmap2 <- read_csv("heatmap_month_day.csv") %>% clean_names() %>% rename(trips = n)
+heatmap3 <- read_csv("heatmap_month_week.csv") %>% clean_names() %>% rename(trips = n)
+heatmap4 <- read_csv("heatmap_base_weekday.csv") %>% clean_names()
+
+month_sub <- read_csv("geo_sample.csv") %>% clean_names()
+
+# UI
+ui <- fluidPage(
+  titlePanel("Uber Rides Analysis"),
+  tabsetPanel(
+    tabPanel("Trips Every Day",
+             plotOutput("trips_day_plot"),
+             p("Analysis: Trips tend to increase toward the end of the month, peaking on the 30th.")),
+    tabPanel("Trips by Hour and Month",
+             plotOutput("trips_hour_month_plot"),
+             p("Analysis: This line chart shows total trips across different months by hour. September shows peak trips between 15:00 and 20:00.")),
+    tabPanel("Trips by Day and Month",
+             plotOutput("trips_day_month_plot"),
+             p("Analysis: High activity seen throughout September, especially around the 13th.")),
+    tabPanel("Trips by Bases and Month",
+             plotOutput("trips_month_base_plot"),
+             p("Analysis: Base B02617 dominates trip volume in August and September.")),
+    tabPanel("Trips by Month",
+             plotOutput("monthly_trips_plot"),
+             p("Analysis: Shows total trips per month aggregated from all data.")),
+    tabPanel("Heat map by Hour and Day",
+             plotOutput("heat_map_plot"),
+             p("Analysis: End-of-month trips spike between hours 15 and 20.")),
+    tabPanel("Heat Map by Month and Day",
+             plotOutput("heat_map_plot2"),
+             p("Analysis: September has many busy days, particularly 5th–7th and 18th–28th.")),
+    tabPanel("Heat map by Month and Week",
+             plotOutput("heat_map_plot3"),
+             p("Analysis: Peak weekly trips during weeks 35 and 38.")),
+    tabPanel("Heat map by Bases and Day",
+             plotOutput("heat_map_plot4"),
+             p("Analysis: Bases B02617 and B02598 are busiest on Fridays and Thursdays.")),
+    tabPanel("Geospatial Map",
+             leafletOutput("map"),
+             p("Analysis: Pickup locations plotted from a subset of Uber rides.")),
+    tabPanel("Prediction Model",
+             plotOutput("prediction_plot"),
+             verbatimTextOutput("model_summary"),
+             p("This section builds a simple linear model to predict total trips based on hour and month."))
+  )
+)
+
+# Server
+server <- function(input, output) {
+  
+  output$trips_day_plot <- renderPlot({
+    ggplot(trips.day, aes(x = day, y = trips)) +
+      geom_line(color = "darkorange", size = 1.2) +
+      labs(title = "Trips Every Day", x = "Day of Month", y = "Number of Trips") +
+      theme_minimal()
+  })
+  
+  output$trips_hour_month_plot <- renderPlot({
+    ggplot(trips.hour.month, aes(x = hour, y = total_trips, color = as.factor(month))) +
+      geom_line(size = 1.2) +
+      scale_color_brewer(palette = "Set1") +
+      labs(x = "Hour of the Day", y = "Total Trips", color = "Month") +
+      theme_minimal()
+  })
+  
+  output$trips_day_month_plot <- renderPlot({
+    ggplot(trips.month.day, aes(x = factor(day), y = total_trips, fill = as.factor(month))) +
+      geom_bar(stat = "identity", position = position_dodge()) +
+      scale_fill_brewer(palette = "Accent") +
+      labs(x = "Day of the Month", y = "Total Trips", fill = "Month") +
+      theme_minimal()
+  })
+  
+  output$trips_month_base_plot <- renderPlot({
+    ggplot(month.base, aes(x = base, y = total_trips, fill = as.factor(month))) +
+      geom_bar(stat = "identity") +
+      scale_fill_brewer(palette = "Paired") +
+      labs(x = "Base", y = "Total Trips", fill = "Month") +
+      theme_minimal()
+  })
+  
+  output$monthly_trips_plot <- renderPlot({
+    monthly_data <- trips.hour.month %>%
+      group_by(month) %>%
+      summarise(total_trips = sum(total_trips))
+    
+    ggplot(monthly_data, aes(x = as.factor(month), y = total_trips, fill = as.factor(month))) +
+      geom_bar(stat = "identity") +
+      scale_fill_brewer(palette = "Dark2") +
+      labs(title = "Total Trips by Month", x = "Month", y = "Total Trips") +
+      theme_minimal()
+  })
+  
+  output$heat_map_plot <- renderPlot({
+    ggplot(heatmap1, aes(x = hour, y = date, fill = trips)) +
+      geom_tile() +
+      scale_fill_gradient(low = "white", high = "firebrick") +
+      labs(title = "Trips by Hour and Day", x = "Hour", y = "Date") +
+      theme_minimal()
+  })
+  
+  output$heat_map_plot2 <- renderPlot({
+    ggplot(heatmap2, aes(x = day_of_month, y = as.factor(month), fill = trips)) +
+      geom_tile() +
+      scale_fill_gradient(low = "white", high = "deepskyblue4") +
+      labs(title = "Trips by Month and Day", x = "Day of Month", y = "Month") +
+      theme_minimal()
+  })
+  
+  output$heat_map_plot3 <- renderPlot({
+    ggplot(heatmap3, aes(x = week_number, y = year, fill = trips)) +
+      geom_tile() +
+      scale_fill_gradient(low = "white", high = "forestgreen") +
+      labs(title = "Trips by Month and Week", x = "Week Number", y = "Year") +
+      theme_minimal()
+  })
+  
+  output$heat_map_plot4 <- renderPlot({
+    ggplot(heatmap4, aes(x = weekday, y = base, fill = trips)) +
+      geom_tile() +
+      scale_fill_gradient(low = "white", high = "darkorchid") +
+      labs(title = "Trips by Bases and Day of Week", x = "Day of Week", y = "Base") +
+      theme_minimal()
+  })
+  
+  output$map <- renderLeaflet({
+    leaflet(data = month_sub) %>%
+      addTiles() %>%
+      setView(lng = -73.9, lat = 40.8, zoom = 12) %>%
+      addCircleMarkers(lng = ~lon, lat = ~lat,
+                       radius = 3,
+                       color = "navy",
+                       stroke = FALSE,
+                       fillOpacity = 0.6,
+                       popup = ~paste("Date:", date_time, "<br>", "Base:", base))
+  })
+  
+  output$model_summary <- renderPrint({
+    model_data <- trips.hour.month %>% select(hour, month, total_trips)
+    model <- lm(total_trips ~ hour + month, data = model_data)
+    summary(model)
+  })
+  
+  output$prediction_plot <- renderPlot({
+    model_data <- trips.hour.month %>% select(hour, month, total_trips)
+    model <- lm(total_trips ~ hour + month, data = model_data)
+    model_data$predicted <- predict(model, model_data)
+    
+    ggplot(model_data, aes(x = total_trips, y = predicted)) +
+      geom_point(color = "tomato", alpha = 0.6) +
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "steelblue") +
+      labs(title = "Predicted vs Actual Trips",
+           x = "Actual Trips",
+           y = "Predicted Trips") +
+      theme_minimal()
+  })
+}
+
+# Launch App
+shinyApp(ui = ui, server = server)
